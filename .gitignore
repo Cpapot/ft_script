@@ -1,0 +1,11 @@
+.objs/
+*.o
+*.a
+
+typescript
+*.log
+
+*
+!*/
+!*.*
+!Makefile
