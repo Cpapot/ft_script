@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:25:27 by coco              #+#    #+#             */
-/*   Updated: 2026/10/26 12:51:46 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/26 13:59:51 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,11 @@
 # include "ft_script.h"
 
 # define FLAG_LIST {"-a", "--append", "-c", "--command", "-E", "--echo", "-e", "--return", \
-					"-B", "--log-io", "-I", "--log-in", "-O", "--log-out", "-T", "--log-timing", \
-					"-o", "--output-limit", "-q", "--quiet", "-t", "--timing", "-h", "--help", \
+					"-f", "--flush", "-B", "--log-io", "-I", "--log-in", "-O", "--log-out", \
+					"-T", "--log-timing", "-m", "--logging-format", "-o", "--output-limit", \
+					"-q", "--quiet", "-t", "--timing", "-h", "--help", \
 					"-V", "--version", "--force"}
-# define FLAG_COUNT 27
+# define FLAG_COUNT 31
 
 /*				parser error				*/
 # define UNKNOWN_FLAG				"Unknown flag: "
@@ -37,10 +38,12 @@ enum	e_parsing_flags {
 	COMMAND_F,
 	ECHO_F,
 	RETURN_F,
+	FLUSH_F,
 	LOG_IO_F,
 	LOG_IN_F,
 	LOG_OUT_F,
 	LOG_TIMING_F,
+	LOGGING_FORMAT_F,
 	OUTPUT_LIMIT_F,
 	QUIET_F,
 	TIMING_F,

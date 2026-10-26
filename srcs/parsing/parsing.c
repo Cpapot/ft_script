@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/26 12:56:15 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/26 13:23:29 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ int	find_flag(char *flagsLine)
 	return UNKNOWN_F;
 }
 
-int	parsing(int argc, char **argv, t_script_data *data)
+int	parsing(int argc, char **argv, t_script_settings *data)
 {
 	for (int i = 1; i != argc; i++)
 	{

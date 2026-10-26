@@ -6,13 +6,13 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:06:26 by coco              #+#    #+#             */
-/*   Updated: 2026/10/26 11:43:19 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/26 13:23:39 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_script.h"
 
-int		parsing(int argc, char **argv, t_script_data *data);
+int		parsing(int argc, char **argv, t_script_settings *data);
 
 // int	ft_script_error(char *error, int doExit)
 // {
@@ -26,8 +26,8 @@ int		parsing(int argc, char **argv, t_script_data *data);
 
 int	main(int argc, char **argv)
 {
-	t_script_data	data;
-	ft_bzero(&data, sizeof(t_script_data));
+	t_script_settings	data;
+	ft_bzero(&data, sizeof(t_script_settings));
 
 	if (parsing(argc, argv, &data))
 		return 1;
