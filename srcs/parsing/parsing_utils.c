@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:28:28 by coco              #+#    #+#             */
-/*   Updated: 2026/10/26 11:41:21 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/26 12:43:51 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,15 @@
 /**
  * @brief Determines if a string represents a command-line flag
  * @param str String to check
- * @return true if string starts with '--' and has at least 3 characters, false otherwise
+ * @return true if string starts with '--' and has at least 3 characters or start with '-' and has 2 characters, false otherwise
  */
 bool	is_flags(char *str)
 {
 	if (str != NULL)
 	{
 		if (str[0] == '-' && str[1] == '-' && ft_strlen(str) >= 3)
+			return true;
+		else if (str[0] == '-' && ft_strlen(str) == 2)
 			return true;
 	}
 	return false;
