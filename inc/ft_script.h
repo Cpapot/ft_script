@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 11:25:43 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 12:15:48 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,13 @@
 
 # include "../libft/includes/libft.h"
 # include <stdbool.h>
+
+# ifdef FT_SCRIPT_TEST
+#  define SCRIPT_WRITE_FD parsing_test_fd
+extern int parsing_test_fd;
+# else
+#  define SCRIPT_WRITE_FD 1
+# endif
 
 # define PATH_MAX	4096
 

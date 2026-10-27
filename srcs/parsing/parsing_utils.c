@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:28:28 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 10:11:25 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 12:21:41 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,13 @@ bool	is_in_string(char a, char *str)
 
 int		parsing_error(char *errorType, char *errorInfo, bool printHelp, int retValue)
 {
-	write(1, ERROR_PRINT, ft_strlen(ERROR_PRINT));
-	write(1, errorType, ft_strlen(errorType));
+	write(SCRIPT_WRITE_FD, ERROR_PRINT, ft_strlen(ERROR_PRINT));
+	write(SCRIPT_WRITE_FD, errorType, ft_strlen(errorType));
 	if (errorInfo != NULL)
-		write(1, errorInfo, ft_strlen(errorInfo));
-	write(1, "\n", 1);
+		write(SCRIPT_WRITE_FD, errorInfo, ft_strlen(errorInfo));
+	write(SCRIPT_WRITE_FD, "\n", 1);
 	if (printHelp)
-		write(1, HELP_INFO, ft_strlen(HELP_INFO));
+		write(SCRIPT_WRITE_FD, HELP_INFO, ft_strlen(HELP_INFO));
 
 	return retValue;
 }

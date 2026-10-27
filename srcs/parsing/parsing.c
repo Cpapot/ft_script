@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 11:45:45 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 12:21:41 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,11 +127,11 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 		//so cause we use strcmp to check flag if we give a file strcmp will be false to fix later
 		//or ignore cause --log-timing have the same behavior and the command is deprecated
 		case HELP_F:
-			write(1, HELP_FLAG, ft_strlen(HELP_FLAG));
+			write(SCRIPT_WRITE_FD, HELP_FLAG, ft_strlen(HELP_FLAG));
 			data->isClosing = true;
 			return SUCCES;
 		case VERSION_F:
-			write(1, VERSION_FLAG, ft_strlen(VERSION_FLAG));
+			write(SCRIPT_WRITE_FD, VERSION_FLAG, ft_strlen(VERSION_FLAG));
 			data->isClosing = true;
 			return SUCCES;
 	}

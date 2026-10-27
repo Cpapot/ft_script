@@ -12,6 +12,14 @@ SRCS		=	main.c						\
 				parsing/parsing.c			\
 				parsing/parsing_utils.c
 
+TEST_NAME	= tests/test_parsing
+
+TEST_OUTPUT	= tests/parsing_output.log
+
+TEST_SRCS	= tests/test_parsing.c				\
+				srcs/parsing/parsing.c			\
+				srcs/parsing/parsing_utils.c
+
 LIBFTSRC	=	libftprintf.a libft.a printffd.a
 
 #					Directories
@@ -70,6 +78,7 @@ NAME		=	ft_script
 AR			=	ar rc
 
 CFLAGS		=	-Wall -Wextra -Werror -pthread
+TEST_CFLAGS	=	${CFLAGS} -DFT_SCRIPT_TEST
 
 CC			=	cc
 
@@ -109,12 +118,14 @@ endif
 clean:
 	@${MAKE} clean -C ${LIBFTDIR}
 	@${RM} ${OBJS}
+	@${RM} ${TEST_NAME} ${TEST_OUTPUT}
 
 fclean:
 	@echo "${RED}🗑  ${NAME} cleanded"
 	@${RM} ${OBJS}
 	@${RM} ${OBJSDIR}
 	@${RM} ${NAME}
+	@${RM} ${TEST_NAME} ${TEST_OUTPUT}
 	@${MAKE} fclean --no-print-directory -C ${LIBFTDIR}
 
 reobj:
@@ -131,4 +142,10 @@ re:
 lib:
 	@${MAKE} --no-print-directory -C ${LIBFTDIR}
 
-.PHONY : re all clean fclean printf lib header
+${TEST_NAME}: ${TEST_SRCS} ${LIBFT}
+	@${CC} ${TEST_CFLAGS} ${TEST_SRCS} ${LIBFT} -o ${TEST_NAME} -I${HEADERSDIR} -Ilibft/includes
+
+test: lib ${TEST_NAME}
+	@./${TEST_NAME}
+
+.PHONY : re all clean fclean printf lib header test
