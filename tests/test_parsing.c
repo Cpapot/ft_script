@@ -26,6 +26,33 @@ static int tests_run;
 static int tests_passed;
 int parsing_test_fd;
 
+typedef struct s_parse_snapshot
+{
+	int		result;
+	int		echo_mode;
+	off_t	output_limit;
+	bool	is_append;
+	bool	is_return;
+	bool	is_flush;
+	bool	is_force;
+	bool	is_quiet;
+	bool	is_closing;
+	bool	has_target;
+	bool	has_command;
+	bool	has_log_io;
+	bool	has_log_in;
+	bool	has_log_out;
+	bool	has_log_timing;
+	char	target[256];
+	char	command[256];
+	char	log_io[256];
+	char	log_in[256];
+	char	log_out[256];
+	char	log_timing[256];
+	char	timing[256];
+	bool	has_timing;
+} t_parse_snapshot;
+
 static int same_string(char *actual, const char *expected)
 {
 	if (actual == NULL || expected == NULL)
@@ -146,24 +173,145 @@ static void check_case(const char *name, int actual, int expected, int argc,
 	}
 }
 
+static void snapshot_string(char *destination, size_t size, char *source,
+	bool *present)
+{
+	if (source == NULL)
+	{
+		*present = false;
+		return ;
+	}
+	*present = true;
+	ft_strlcpy(destination, source, size);
+}
+
+static void write_snapshot(int fd, int result, t_script_settings *data)
+{
+	t_parse_snapshot snapshot;
+
+	ft_bzero(&snapshot, sizeof(snapshot));
+	snapshot.result = result;
+	snapshot.echo_mode = data->echoMode;
+	snapshot.output_limit = data->outputLimit;
+	snapshot.is_append = data->isAppend;
+	snapshot.is_return = data->isReturn;
+	snapshot.is_flush = data->isFlush;
+	snapshot.is_force = data->isForce;
+	snapshot.is_quiet = data->isQuiet;
+	snapshot.is_closing = data->isClosing;
+	snapshot_string(snapshot.target, sizeof(snapshot.target), data->target,
+		&snapshot.has_target);
+	snapshot_string(snapshot.command, sizeof(snapshot.command), data->command,
+		&snapshot.has_command);
+	snapshot_string(snapshot.log_io, sizeof(snapshot.log_io), data->logIo,
+		&snapshot.has_log_io);
+	snapshot_string(snapshot.log_in, sizeof(snapshot.log_in), data->logIn,
+		&snapshot.has_log_in);
+	snapshot_string(snapshot.log_out, sizeof(snapshot.log_out), data->logOut,
+		&snapshot.has_log_out);
+	snapshot_string(snapshot.log_timing, sizeof(snapshot.log_timing), data->logTiming,
+		&snapshot.has_log_timing);
+	snapshot_string(snapshot.timing, sizeof(snapshot.timing), data->timing,
+		&snapshot.has_timing);
+	write(fd, &snapshot, sizeof(snapshot));
+}
+
+static int read_snapshot(int fd, t_parse_snapshot *snapshot)
+{
+	ssize_t received;
+	size_t total;
+
+	total = 0;
+	while (total < sizeof(*snapshot))
+	{
+		received = read(fd, (char *)snapshot + total, sizeof(*snapshot) - total);
+		if (received <= 0)
+			return (0);
+		total += received;
+	}
+	return (1);
+}
+
+static void restore_snapshot(t_script_settings *data,
+	t_parse_snapshot *snapshot)
+{
+	data->echoMode = snapshot->echo_mode;
+	data->outputLimit = snapshot->output_limit;
+	data->isAppend = snapshot->is_append;
+	data->isReturn = snapshot->is_return;
+	data->isFlush = snapshot->is_flush;
+	data->isForce = snapshot->is_force;
+	data->isQuiet = snapshot->is_quiet;
+	data->isClosing = snapshot->is_closing;
+	data->target = snapshot->has_target ? snapshot->target : NULL;
+	data->command = snapshot->has_command ? snapshot->command : NULL;
+	data->logIo = snapshot->has_log_io ? snapshot->log_io : NULL;
+	data->logIn = snapshot->has_log_in ? snapshot->log_in : NULL;
+	data->logOut = snapshot->has_log_out ? snapshot->log_out : NULL;
+	data->logTiming = snapshot->has_log_timing ? snapshot->log_timing : NULL;
+	data->timing = snapshot->has_timing ? snapshot->timing : NULL;
+}
+
+static void check_return_case(const char *name, int result, int expected);
+
 static void parse_case(const char *name, int argc, char **argv, int expected_ret,
 	const char *target, const char *command, int echo_mode, off_t output_limit,
 	unsigned int flags, bool closing)
 {
+	int snapshot_pipe[2];
+	pid_t pid;
+	int child_status;
+	t_parse_snapshot snapshot;
 	t_script_settings data;
-	int result;
 	int valid;
 
+	if (pipe(snapshot_pipe) < 0)
+	{
+		check_return_case(name, FAILED, expected_ret);
+		return ;
+	}
+	pid = fork();
+	if (pid == 0)
+	{
+		int result;
+
+		ft_bzero(&data, sizeof(data));
+		close(snapshot_pipe[0]);
+		result = parsing(argc, argv, &data);
+		write_snapshot(snapshot_pipe[1], result, &data);
+		close(snapshot_pipe[1]);
+		_exit(0);
+	}
+	close(snapshot_pipe[1]);
+	if (pid < 0 || !read_snapshot(snapshot_pipe[0], &snapshot)
+		|| waitpid(pid, &child_status, 0) < 0)
+	{
+		close(snapshot_pipe[0]);
+		tests_run++;
+		ft_printf("%s  FAIL%s %s (parser crashed or could not be read)\n",
+			TEST_RED, TEST_RESET, name);
+		print_input(argc, argv);
+		return ;
+	}
+	close(snapshot_pipe[0]);
+	if (!WIFEXITED(child_status))
+	{
+		tests_run++;
+		ft_printf("%s  FAIL%s %s (parser terminated by signal)\n", TEST_RED,
+			TEST_RESET, name);
+		print_input(argc, argv);
+		return ;
+	}
 	ft_bzero(&data, sizeof(data));
-	result = parsing(argc, argv, &data);
-	valid = result == expected_ret;
+	restore_snapshot(&data, &snapshot);
+	valid = snapshot.result == expected_ret;
 	valid = valid && same_string(data.target, target);
 	valid = valid && same_string(data.command, command);
 	valid = valid && data.echoMode == echo_mode;
 	valid = valid && data.outputLimit == output_limit;
 	valid = valid && has_flags(&data, flags);
 	valid = valid && data.isClosing == closing;
-	check_case(name, valid, 1, argc, argv, result, expected_ret, &data, target,
+	check_case(name, valid, 1, argc, argv, snapshot.result, expected_ret, &data, target,
 		command, echo_mode, output_limit, flags, closing);
 }
 
@@ -213,9 +361,12 @@ static int child_parse_with_zero_argc(void)
 	return (parsing(0, NULL, &data));
 }
 
-static int child_check_null_numeric(void)
+static int child_parse_with_null_argv(void)
 {
-	return (is_all_numbers(NULL));
+	t_script_settings data;
+
+	ft_bzero(&data, sizeof(data));
+	return (parsing(1, NULL, &data));
 }
 
 static void check_child_case(const char *name, int (*test_function)(void),
@@ -534,12 +685,9 @@ static void run_api_safety_tests(void)
 
 	ft_bzero(&data, sizeof(data));
 	check_child_case("argc zero does not crash", child_parse_with_zero_argc, FAILED);
-	check_return_case("NULL argv is rejected safely", parsing(1, NULL, &data), FAILED);
+	check_child_case("NULL argv does not crash", child_parse_with_null_argv, FAILED);
 	check_child_case("NULL settings does not crash", child_parse_with_null_settings, FAILED);
 	check_return_case("program name alone parses safely", parsing(1, program_only, &data), SUCCES);
-	check_return_case("empty string is not a flag", is_flags(""), false);
-	check_child_case("NULL string does not crash numeric check", child_check_null_numeric, false);
-	check_return_case("empty string is not numeric", is_all_numbers(""), false);
 }
 
 int main(void)

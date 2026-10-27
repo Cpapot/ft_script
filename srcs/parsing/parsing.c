@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 12:21:41 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 13:06:48 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 			if (argv[*index + 1] == NULL)
 				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
-			if (!is_all_numbers(argv[*index]))
+			if (!is_all_numbers(argv[*index]) || !argv[*index][0])
 				return parsing_error(FAILED_TO_PARSE_LIMIT, argv[*index], false, FAILED);
 			data->outputLimit = ft_atoll(argv[*index]);
 			return SUCCES;
@@ -140,6 +140,8 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 
 int	parsing(int argc, char **argv, t_script_settings *data)
 {
+	if (argc == 0 || argv == NULL || data == NULL)
+		return FAILED;
 	for (int i = 1; i != argc; i++)
 	{
 		if (is_flags(argv[i]))
