@@ -22,7 +22,8 @@ TEST_OUTPUT	= tests/parsing_output.log
 
 TEST_SRCS	= tests/test_parsing.c				\
 				srcs/parsing/parsing.c			\
-				srcs/parsing/parsing_utils.c
+				srcs/parsing/parsing_utils.c		\
+				srcs/print.c
 
 LIBFTSRC	=	libftprintf.a libft.a printffd.a
 
