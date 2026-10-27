@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:25:27 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 12:15:48 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 14:23:30 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@
 # define MISSING_ARG				"option requires an argument "
 # define UNEXPECTED_ARG				"unexpected number of arguments"
 # define FAILED_TO_PARSE_LIMIT		"failed to parse output limit size: "
-# define HELP_INFO					"Try 'ft_script --help' for more information.\n"
 # define HELP_FLAG					"Usage:\n ft_script [options] [file]\n\nMake a typescript of a terminal session.\n\n\
 Options:\n -I, --log-in <file>           log stdin to file\n -O, --log-out <file>          log stdout to file (default)\n\
  -B, --log-io <file>           log stdin and stdout to file\n\n -T, --log-timing <file>       log timing information to file\n\
@@ -51,7 +50,6 @@ Options:\n -I, --log-in <file>           log stdin to file\n -O, --log-out <file
 bool	is_flags(char *str);
 bool	is_in_string(char a, char *str);
 bool	is_all_numbers(char *str);
-int		parsing_error(char *errorType, char *errorInfo, bool printHelp, int retValue);
 
 enum	e_parsing_flags {
 	UNKNOWN_F = 0,
@@ -72,11 +70,5 @@ enum	e_parsing_flags {
 	VERSION_F,
 	FORCE_F
 };
-
-enum	e_parsing_return {
-	SUCCES = 0,
-	FAILED = 1
-};
-
 
 #endif

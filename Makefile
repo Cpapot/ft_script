@@ -6,11 +6,15 @@
 #				|_|    |_|_|\___||___/
 
 HEADERS		=	ft_script.h				\
-				parsing.h
+				parsing.h				\
+				files.h					\
+				print.h
 
 SRCS		=	main.c						\
 				parsing/parsing.c			\
-				parsing/parsing_utils.c
+				parsing/parsing_utils.c		\
+				files.c						\
+				print.c
 
 TEST_NAME	= tests/test_parsing
 

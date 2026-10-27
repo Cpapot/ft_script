@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 13:06:48 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 14:23:54 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static int find_echo_mode(char *echoMode, t_script_settings *data)
 			return SUCCES;
 		}
 	}
-	return parsing_error(UNSSUPORTED_ECHO, echoMode, false, FAILED);
+	return print_error(UNSSUPORTED_ECHO, echoMode, false, FAILED);
 }
 
 static int find_logging_format(char *logingFormat, t_script_settings *data)
@@ -51,7 +51,7 @@ static int find_logging_format(char *logingFormat, t_script_settings *data)
 			return SUCCES;
 		}
 	}
-	return parsing_error(UNSSUPORTED_FORMAT, logingFormat, false, FAILED);
+	return print_error(UNSSUPORTED_FORMAT, logingFormat, false, FAILED);
 }
 
 static int store_data(int flagId, int *index, char **argv, t_script_settings *data)
@@ -59,19 +59,19 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 	switch (flagId)
 	{
 		case UNKNOWN_F:
-			return parsing_error(UNKNOWN_FLAG, argv[*index], true, FAILED);
+			return print_error(UNKNOWN_FLAG, argv[*index], true, FAILED);
 		case APPEND_F:
 			data->isAppend = true;
 			return SUCCES;
 		case COMMAND_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			data->command = argv[*index];
 			return SUCCES;
 		case ECHO_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			return find_echo_mode(argv[*index], data);
 		case RETURN_F:
@@ -85,39 +85,39 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 			return SUCCES;
 		case LOG_IO_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			data->logIo = argv[*index];
 			return SUCCES;
 		case LOG_IN_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			data->logIn = argv[*index];
 			return SUCCES;
 		case LOG_OUT_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			data->logOut = argv[*index];
 			return SUCCES;
 		case LOG_TIMING_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			data->logTiming = argv[*index];
 			return SUCCES;
 		case LOGGING_FORMAT_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			return find_logging_format(argv[*index], data);
 		case OUTPUT_LIMIT_F:
 			if (argv[*index + 1] == NULL)
-				return parsing_error(MISSING_ARG, argv[*index], true, FAILED);
+				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
 			if (!is_all_numbers(argv[*index]) || !argv[*index][0])
-				return parsing_error(FAILED_TO_PARSE_LIMIT, argv[*index], false, FAILED);
+				return print_error(FAILED_TO_PARSE_LIMIT, argv[*index], false, FAILED);
 			data->outputLimit = ft_atoll(argv[*index]);
 			return SUCCES;
 		case QUIET_F:
@@ -160,7 +160,7 @@ int	parsing(int argc, char **argv, t_script_settings *data)
 			if (data->target == NULL)
 				data->target = argv[i];
 			else
-				return parsing_error(UNEXPECTED_ARG, NULL, true, 1);
+				return print_error(UNEXPECTED_ARG, NULL, true, 1);
 		}
 	}
 	if (data->target == NULL)

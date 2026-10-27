@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 12:15:48 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/27 15:01:27 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include "../libft/includes/libft.h"
 # include <stdbool.h>
+# include <errno.h>
 
 # ifdef FT_SCRIPT_TEST
 #  define SCRIPT_WRITE_FD parsing_test_fd
@@ -25,8 +26,8 @@ extern int parsing_test_fd;
 
 # define PATH_MAX	4096
 
-# define ERROR_PRINT "ft_script: "
-# define WARN_PRINT "\e[1;33m[WARN]: \e[0;37m"
+# define ERROR_PRINT	"ft_script: "
+# define HELP_INFO		"Try 'ft_script --help' for more information.\n"
 
 enum e_echo_mode {
 	ECHO_AUTO	= 0,
@@ -37,6 +38,11 @@ enum e_echo_mode {
 enum e_logging_format {
 	LFORMAT_CLASSIC		= 0,
 	LFORMAT_ADVANCED	= 1
+};
+
+enum	e_return {
+	SUCCES = 0,
+	FAILED = 1
 };
 
 typedef struct s_script_settings
@@ -60,5 +66,18 @@ typedef struct s_script_settings
 	
 	bool	isClosing;
 }	t_script_settings;
+
+typedef struct s_script_data
+{
+	t_script_settings	settings;
+	
+	int					targetFd;
+	int					logIoFd;
+	int					logInFd;
+}	t_script_data;
+
+int		print_error(char *errorType, char *errorInfo, bool printHelp, int retValue);
+//DEBUG FUCTION TO REMOVE LATER
+void	print_settings(t_script_settings data);
 
 #endif
