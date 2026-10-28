@@ -18,9 +18,8 @@ int parsing(int argc, char **argv, t_script_settings *data);
 #define FLAG_FORCE (1u << 4)
 #define FLAG_LOG_IO (1u << 5)
 #define FLAG_LOG_IN (1u << 6)
-#define FLAG_LOG_OUT (1u << 7)
-#define FLAG_LOG_TIMING (1u << 8)
-#define FLAG_QUIET (1u << 9)
+#define FLAG_LOG_TIMING (1u << 7)
+#define FLAG_QUIET (1u << 8)
 
 static int tests_run;
 static int tests_passed;
@@ -41,13 +40,11 @@ typedef struct s_parse_snapshot
 	bool	has_command;
 	bool	has_log_io;
 	bool	has_log_in;
-	bool	has_log_out;
 	bool	has_log_timing;
 	char	target[256];
 	char	command[256];
 	char	log_io[256];
 	char	log_in[256];
-	char	log_out[256];
 	char	log_timing[256];
 	char	timing[256];
 	bool	has_timing;
@@ -79,8 +76,6 @@ static int has_flags(t_script_settings *data, unsigned int expected)
 		actual |= FLAG_LOG_IO;
 	if (data->logIn != NULL)
 		actual |= FLAG_LOG_IN;
-	if (data->logOut != NULL)
-		actual |= FLAG_LOG_OUT;
 	if (data->logTiming != NULL)
 		actual |= FLAG_LOG_TIMING;
 	if (data->isQuiet)
@@ -107,8 +102,6 @@ static unsigned int get_flags(t_script_settings *data)
 		flags |= FLAG_LOG_IO;
 	if (data->logIn != NULL)
 		flags |= FLAG_LOG_IN;
-	if (data->logOut != NULL)
-		flags |= FLAG_LOG_OUT;
 	if (data->logTiming != NULL)
 		flags |= FLAG_LOG_TIMING;
 	if (data->isQuiet)
@@ -207,8 +200,6 @@ static void write_snapshot(int fd, int result, t_script_settings *data)
 		&snapshot.has_log_io);
 	snapshot_string(snapshot.log_in, sizeof(snapshot.log_in), data->logIn,
 		&snapshot.has_log_in);
-	snapshot_string(snapshot.log_out, sizeof(snapshot.log_out), data->logOut,
-		&snapshot.has_log_out);
 	snapshot_string(snapshot.log_timing, sizeof(snapshot.log_timing), data->logTiming,
 		&snapshot.has_log_timing);
 	snapshot_string(snapshot.timing, sizeof(snapshot.timing), data->timing,
@@ -247,7 +238,6 @@ static void restore_snapshot(t_script_settings *data,
 	data->command = snapshot->has_command ? snapshot->command : NULL;
 	data->logIo = snapshot->has_log_io ? snapshot->log_io : NULL;
 	data->logIn = snapshot->has_log_in ? snapshot->log_in : NULL;
-	data->logOut = snapshot->has_log_out ? snapshot->log_out : NULL;
 	data->logTiming = snapshot->has_log_timing ? snapshot->log_timing : NULL;
 	data->timing = snapshot->has_timing ? snapshot->timing : NULL;
 }
@@ -458,20 +448,20 @@ static void run_file_tests(void)
 {
 	char *log_io[] = {"ft_script", "-B", "io.log", NULL};
 	char *log_in[] = {"ft_script", "-I", "stdin.log", NULL};
-	char *log_out[] = {"ft_script", "-O", "stdout.log", NULL};
 	char *log_timing[] = {"ft_script", "-T", "timing.log", NULL};
+	char *output_target[] = {"ft_script", "-O", "ok", NULL};
+	char *output_target_twice[] = {"ft_script", "-O", "ok", "ok", NULL};
 	char *log_io_missing[] = {"ft_script", "--log-io", NULL};
 	char *log_in_missing[] = {"ft_script", "--log-in", NULL};
-	char *log_out_missing[] = {"ft_script", "--log-out", NULL};
 	char *log_timing_missing[] = {"ft_script", "--log-timing", NULL};
 
 	parse_case("24 log io", 3, log_io, 0, "typescript", NULL, 0, 0, FLAG_LOG_IO, false);
 	parse_case("25 log input", 3, log_in, 0, "typescript", NULL, 0, 0, FLAG_LOG_IN, false);
-	parse_case("26 log output", 3, log_out, 0, "typescript", NULL, 0, 0, FLAG_LOG_OUT, false);
-	parse_case("27 log timing", 3, log_timing, 0, "typescript", NULL, 0, 0, FLAG_LOG_TIMING, false);
-	parse_case("28 missing log io", 2, log_io_missing, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("29 missing log input", 2, log_in_missing, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("30 missing log output", 2, log_out_missing, 1, NULL, NULL, 0, 0, 0, false);
+	parse_case("26 log timing", 3, log_timing, 0, "typescript", NULL, 0, 0, FLAG_LOG_TIMING, false);
+	parse_case("27 -O adds output name to target", 3, output_target, 0, "ok", NULL, 0, 0, 0, false);
+	parse_case("28 -O with two targets is rejected", 4, output_target_twice, 1, "ok", NULL, 0, 0, 0, false);
+	parse_case("29 missing log io", 2, log_io_missing, 1, NULL, NULL, 0, 0, 0, false);
+	parse_case("30 missing log input", 2, log_in_missing, 1, NULL, NULL, 0, 0, 0, false);
 	parse_case("31 missing log timing", 2, log_timing_missing, 1, NULL, NULL, 0, 0, 0, false);
 }
 
@@ -548,18 +538,18 @@ static void run_combination_tests(void)
 	};
 	unsigned int flags[] = {FLAG_APPEND | FLAG_QUIET, FLAG_APPEND | FLAG_QUIET,
 		FLAG_COMMAND | FLAG_QUIET, FLAG_FLUSH, FLAG_LOG_IO | FLAG_LOG_IN,
-		FLAG_LOG_OUT | FLAG_LOG_TIMING, 0, FLAG_FORCE | FLAG_RETURN | FLAG_FLUSH | FLAG_QUIET,
+		FLAG_LOG_TIMING, 0, FLAG_FORCE | FLAG_RETURN | FLAG_FLUSH | FLAG_QUIET,
 		FLAG_APPEND | FLAG_COMMAND};
 	const char *commands[] = {NULL, NULL, "echo", NULL, NULL, NULL, NULL, NULL, "run"};
 	const char *targets[] = {"a.log", "b.log", "typescript", "typescript", "typescript",
-		"typescript", "typescript", "typescript", "session.log"};
-	int argc_values[] = {4, 4, 4, 4, 6, 6, 6, 5, 5};
+		"out", "typescript", "typescript", "session.log"};
+	int argc_values[] = {4, 4, 4, 4, 6, 5, 6, 5, 5};
 	int index;
 
 	for (index = 0; index < 9; index++)
 		parse_case(index == 0 ? "append quiet with target" : index == 1 ? "long append quiet with target" :
 			index == 2 ? "command followed by quiet" : index == 3 ? "echo always and flush" :
-			index == 4 ? "log io and log input" : index == 5 ? "log output and timing" :
+			index == 4 ? "log io and log input" : index == 5 ? "output target and timing" :
 			index == 6 ? "output limit and advanced format" : index == 7 ? "force return flush quiet" :
 			"append command with target", argc_values[index], cases[index], 0, targets[index],
 			commands[index], index == 3 ? 1 : 0, index == 6 ? 1 : 0, flags[index], false);
@@ -616,13 +606,12 @@ static void run_extra_tests(void)
 	char *log_cases[][3] = {
 		{"ft_script", "--log-io", "all.log"},
 		{"ft_script", "--log-in", "in.log"},
-		{"ft_script", "--log-out", "out.log"},
 		{"ft_script", "--log-timing", "time.log"},
 		{"ft_script", "-I", "input.log"},
 		{"ft_script", "-O", "output.log"}
 	};
-	unsigned int log_flags[] = {FLAG_LOG_IO, FLAG_LOG_IN, FLAG_LOG_OUT,
-		FLAG_LOG_TIMING, FLAG_LOG_IN, FLAG_LOG_OUT};
+	unsigned int log_flags[] = {FLAG_LOG_IO, FLAG_LOG_IN, FLAG_LOG_TIMING,
+		FLAG_LOG_IN, 0};
 	char *limits[] = {"1", "2", "10", "999999", "2147483648"};
 	char *limit_cases[5][4];
 	int index;
@@ -635,8 +624,9 @@ static void run_extra_tests(void)
 	for (index = 0; index < 10; index++)
 		parse_case("repeated boolean switch alias", 2, (char *[]){"ft_script", switches[index], NULL},
 			0, "typescript", NULL, 0, 0, switch_flags[index], false);
-	for (index = 0; index < 6; index++)
-		parse_case("long and short log destination", 3, log_cases[index], 0, "typescript", NULL,
+	for (index = 0; index < 5; index++)
+		parse_case(index == 4 ? "-O output destination" : "long and short log destination",
+			3, log_cases[index], 0, index == 4 ? "output.log" : "typescript", NULL,
 			0, 0, log_flags[index], false);
 	for (index = 0; index < 5; index++)
 	{

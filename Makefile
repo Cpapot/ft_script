@@ -150,7 +150,7 @@ lib:
 ${TEST_NAME}: ${TEST_SRCS} ${LIBFT}
 	@${CC} ${TEST_CFLAGS} ${TEST_SRCS} ${LIBFT} -o ${TEST_NAME} -I${HEADERSDIR} -Ilibft/includes
 
-test: lib ${TEST_NAME}
+test: header lib ${NAME} ${TEST_NAME}
 	@./${TEST_NAME}
 
 .PHONY : re all clean fclean printf lib header test
