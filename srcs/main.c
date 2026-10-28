@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:06:26 by coco              #+#    #+#             */
-/*   Updated: 2026/10/28 09:32:52 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 10:36:00 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,10 @@ int	main(int argc, char **argv)
 
 	if (create_all_files(&data))
 	{
-		ft_printf("ok");
+		close_all_files(data);	
 		return FAILED;
 	}
-
+	
 	close_all_files(data);	
 	return SUCCES;
 }

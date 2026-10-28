@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 14:01:19 by coren             #+#    #+#             */
-/*   Updated: 2026/10/28 10:24:56 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 10:35:25 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,12 +39,11 @@ void	close_all_files(t_script_data data)
 		close(data.logInFd);
 	if (data.logTimingFd)
 		close(data.logTimingFd);
-
 }
 
 int		create_all_files(t_script_data *data)
 {
-	int flags = data->settings.isAppend ? O_CREAT | O_WRONLY | O_APPEND :  O_CREAT | O_WRONLY | O_TRUNC;
+	int flags = O_CREAT | O_WRONLY | (data->settings.isAppend ? O_APPEND : O_TRUNC) | (data->settings.isFlush ? O_SYNC : 0);
 	if (data->settings.logIn && create_unique_file(data->settings.logIn, flags, &(data->logInFd)))
 		return FAILED;
 	if (data->settings.logTiming && create_unique_file(data->settings.logTiming, flags, &(data->logTimingFd)))
