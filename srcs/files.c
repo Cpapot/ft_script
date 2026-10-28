@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 14:01:19 by coren             #+#    #+#             */
-/*   Updated: 2026/10/28 09:49:54 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 10:24:56 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 static int	create_unique_file(char *name, int flags, int *fdDest)
 {
-	ft_printf("creating %s\n", name);
 	int fd = open(name, flags, 0644);
 	if (fd < 0)
 	{
@@ -38,17 +37,19 @@ void	close_all_files(t_script_data data)
 		close(data.logOutFd);
 	if (data.logInFd)
 		close(data.logInFd);
+	if (data.logTimingFd)
+		close(data.logTimingFd);
 
 }
 
 int		create_all_files(t_script_data *data)
 {
 	int flags = data->settings.isAppend ? O_CREAT | O_WRONLY | O_APPEND :  O_CREAT | O_WRONLY | O_TRUNC;
-	if ((data->settings.logIn && create_unique_file(data->settings.logIn, flags, &(data->logInFd))) || !data->settings.logIn)
+	if (data->settings.logIn && create_unique_file(data->settings.logIn, flags, &(data->logInFd)))
 		return FAILED;
-	if ((data->settings.logTiming && create_unique_file(data->settings.logTiming, flags, &(data->logTimingFd))) || !data->settings.logTiming)
+	if (data->settings.logTiming && create_unique_file(data->settings.logTiming, flags, &(data->logTimingFd)))
 		return FAILED;
-	if ((data->settings.logOut && create_unique_file(data->settings.logOut, flags, &(data->logOutFd))) || !data->settings.logTiming)
+	if (data->settings.logOut && create_unique_file(data->settings.logOut, flags, &(data->logOutFd)))
 		return FAILED;
 	return SUCCES;
 }
