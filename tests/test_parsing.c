@@ -16,10 +16,9 @@ int parsing(int argc, char **argv, t_script_settings *data);
 #define FLAG_RETURN (1u << 2)
 #define FLAG_FLUSH (1u << 3)
 #define FLAG_FORCE (1u << 4)
-#define FLAG_LOG_IO (1u << 5)
-#define FLAG_LOG_IN (1u << 6)
-#define FLAG_LOG_TIMING (1u << 7)
-#define FLAG_QUIET (1u << 8)
+#define FLAG_LOG_IN (1u << 5)
+#define FLAG_LOG_TIMING (1u << 6)
+#define FLAG_QUIET (1u << 7)
 
 static int tests_run;
 static int tests_passed;
@@ -38,7 +37,6 @@ typedef struct s_parse_snapshot
 	bool	is_closing;
 	bool	has_target;
 	bool	has_command;
-	bool	has_log_io;
 	bool	has_log_in;
 	bool	has_log_timing;
 	char	target[256];
@@ -49,6 +47,30 @@ typedef struct s_parse_snapshot
 	char	timing[256];
 	bool	has_timing;
 } t_parse_snapshot;
+
+typedef struct s_parser_test_case
+{
+	const char		*name;
+	int				argc;
+	char			**argv;
+	int				expected_return;
+	const char		*expected_target;
+	const char		*expected_command;
+	int				expected_echo_mode;
+	off_t			expected_output_limit;
+	unsigned int	expected_flags;
+	bool			expected_closing;
+} t_parser_test_case;
+
+typedef struct s_timing_test_case
+{
+	const char	*name;
+	int			argc;
+	char		**argv;
+	int			expected_return;
+	const char	*expected_target;
+	const char	*expected_timing;
+} t_timing_test_case;
 
 static int same_string(char *actual, const char *expected)
 {
@@ -72,8 +94,6 @@ static int has_flags(t_script_settings *data, unsigned int expected)
 		actual |= FLAG_FLUSH;
 	if (data->isForce)
 		actual |= FLAG_FORCE;
-	if (data->logIo != NULL)
-		actual |= FLAG_LOG_IO;
 	if (data->logIn != NULL)
 		actual |= FLAG_LOG_IN;
 	if (data->logTiming != NULL)
@@ -98,8 +118,6 @@ static unsigned int get_flags(t_script_settings *data)
 		flags |= FLAG_FLUSH;
 	if (data->isForce)
 		flags |= FLAG_FORCE;
-	if (data->logIo != NULL)
-		flags |= FLAG_LOG_IO;
 	if (data->logIn != NULL)
 		flags |= FLAG_LOG_IN;
 	if (data->logTiming != NULL)
@@ -130,8 +148,8 @@ static void print_diff(int result, int expected_ret, t_script_settings *data,
 	ft_printf("    diff:\n");
 	if (result != expected_ret)
 		ft_printf("      return: got %d, expected %d\n", result, expected_ret);
-	if (!same_string(data->target, target))
-		ft_printf("      target: got %s, expected %s\n", data->target, target);
+	if (!same_string(data->logOut, target))
+		ft_printf("      target: got %s, expected %s\n", data->logOut, target);
 	if (!same_string(data->command, command))
 		ft_printf("      command: got %s, expected %s\n", data->command, command);
 	if (data->echoMode != echo_mode)
@@ -192,12 +210,10 @@ static void write_snapshot(int fd, int result, t_script_settings *data)
 	snapshot.is_force = data->isForce;
 	snapshot.is_quiet = data->isQuiet;
 	snapshot.is_closing = data->isClosing;
-	snapshot_string(snapshot.target, sizeof(snapshot.target), data->target,
+	snapshot_string(snapshot.target, sizeof(snapshot.target), data->logOut,
 		&snapshot.has_target);
 	snapshot_string(snapshot.command, sizeof(snapshot.command), data->command,
 		&snapshot.has_command);
-	snapshot_string(snapshot.log_io, sizeof(snapshot.log_io), data->logIo,
-		&snapshot.has_log_io);
 	snapshot_string(snapshot.log_in, sizeof(snapshot.log_in), data->logIn,
 		&snapshot.has_log_in);
 	snapshot_string(snapshot.log_timing, sizeof(snapshot.log_timing), data->logTiming,
@@ -234,15 +250,33 @@ static void restore_snapshot(t_script_settings *data,
 	data->isForce = snapshot->is_force;
 	data->isQuiet = snapshot->is_quiet;
 	data->isClosing = snapshot->is_closing;
-	data->target = snapshot->has_target ? snapshot->target : NULL;
+	data->logOut = snapshot->has_target ? snapshot->target : NULL;
 	data->command = snapshot->has_command ? snapshot->command : NULL;
-	data->logIo = snapshot->has_log_io ? snapshot->log_io : NULL;
 	data->logIn = snapshot->has_log_in ? snapshot->log_in : NULL;
 	data->logTiming = snapshot->has_log_timing ? snapshot->log_timing : NULL;
 	data->timing = snapshot->has_timing ? snapshot->timing : NULL;
 }
 
 static void check_return_case(const char *name, int result, int expected);
+static void parse_case(const char *name, int argc, char **argv, int expected_ret,
+	const char *target, const char *command, int echo_mode, off_t output_limit,
+	unsigned int flags, bool closing);
+static void parse_timing_case(const char *name, int argc, char **argv,
+	int expected_ret, const char *target, const char *timing);
+
+static void run_parser_test_case(t_parser_test_case test)
+{
+	parse_case(test.name, test.argc, test.argv, test.expected_return,
+		test.expected_target, test.expected_command,
+		test.expected_echo_mode, test.expected_output_limit,
+		test.expected_flags, test.expected_closing);
+}
+
+static void run_timing_test_case(t_timing_test_case test)
+{
+	parse_timing_case(test.name, test.argc, test.argv, test.expected_return,
+		test.expected_target, test.expected_timing);
+}
 
 static void parse_case(const char *name, int argc, char **argv, int expected_ret,
 	const char *target, const char *command, int echo_mode, off_t output_limit,
@@ -295,7 +329,7 @@ static void parse_case(const char *name, int argc, char **argv, int expected_ret
 	ft_bzero(&data, sizeof(data));
 	restore_snapshot(&data, &snapshot);
 	valid = snapshot.result == expected_ret;
-	valid = valid && same_string(data.target, target);
+	valid = valid && same_string(data.logOut, target);
 	valid = valid && same_string(data.command, command);
 	valid = valid && data.echoMode == echo_mode;
 	valid = valid && data.outputLimit == output_limit;
@@ -315,7 +349,7 @@ static void parse_timing_case(const char *name, int argc, char **argv,
 	ft_bzero(&data, sizeof(data));
 	result = parsing(argc, argv, &data);
 	valid = result == expected_ret;
-	valid = valid && same_string(data.target, target);
+	valid = valid && same_string(data.logOut, target);
 	valid = valid && same_string(data.timing, timing);
 	check_case(name, valid, 1, argc, argv, result, expected_ret, &data,
 		target, NULL, ECHO_AUTO, 0, 0, false);
@@ -388,60 +422,76 @@ static void check_child_case(const char *name, int (*test_function)(void),
 
 static void run_basic_tests(void)
 {
-	char *empty[] = {"ft_script", NULL};
-	char *target[] = {"ft_script", "session.log", NULL};
-	char *second_target[] = {"ft_script", "one.log", "two.log", NULL};
-	char *empty_target[] = {"ft_script", "", NULL};
-	char *dash_target[] = {"ft_script", "-", NULL};
+	char *argv_default[] = {"ft_script", NULL};
+	char *argv_target[] = {"ft_script", "session.log", NULL};
+	char *argv_two_targets[] = {"ft_script", "one.log", "two.log", NULL};
+	char *argv_empty_target[] = {"ft_script", "", NULL};
+	char *argv_dash_target[] = {"ft_script", "-", NULL};
+	t_parser_test_case cases[] = {
+		{"default target", 1, argv_default, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"custom target", 2, argv_target, SUCCES, "session.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"two targets rejected", 3, argv_two_targets, FAILED, "one.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"empty target", 2, argv_empty_target, SUCCES, "", NULL, ECHO_AUTO, 0, 0, false},
+		{"dash target", 2, argv_dash_target, SUCCES, "-", NULL, ECHO_AUTO, 0, 0, false}
+	};
+	int index;
 
-	parse_case("01 default target", 1, empty, 0, "typescript", NULL, 0, 0, 0, false);
-	parse_case("02 custom target", 2, target, 0, "session.log", NULL, 0, 0, 0, false);
-	parse_case("03 second target rejected", 3, second_target, 1, "one.log", NULL, 0, 0, 0, false);
-	parse_case("04 empty target", 2, empty_target, 0, "", NULL, 0, 0, 0, false);
-	parse_case("05 dash target", 2, dash_target, 0, "-", NULL, 0, 0, 0, false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_switch_tests(void)
 {
-	char *cases[][3] = {
-		{"ft_script", "-a", NULL}, {"ft_script", "--append", NULL},
-		{"ft_script", "-e", NULL}, {"ft_script", "--return", NULL},
-		{"ft_script", "-f", NULL}, {"ft_script", "--flush", NULL},
-		{"ft_script", "--force", NULL}, {"ft_script", "--force", NULL},
-		{"ft_script", "-q", NULL}, {"ft_script", "--quiet", NULL}
+	char *argv_short_append[] = {"ft_script", "-a", NULL};
+	char *argv_long_append[] = {"ft_script", "--append", NULL};
+	char *argv_short_return[] = {"ft_script", "-e", NULL};
+	char *argv_long_return[] = {"ft_script", "--return", NULL};
+	char *argv_short_flush[] = {"ft_script", "-f", NULL};
+	char *argv_long_flush[] = {"ft_script", "--flush", NULL};
+	char *argv_force[] = {"ft_script", "--force", NULL};
+	char *argv_short_quiet[] = {"ft_script", "-q", NULL};
+	char *argv_long_quiet[] = {"ft_script", "--quiet", NULL};
+	t_parser_test_case cases[] = {
+		{"short -a append", 2, argv_short_append, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_APPEND, false},
+		{"long --append append", 2, argv_long_append, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_APPEND, false},
+		{"short -e return", 2, argv_short_return, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_RETURN, false},
+		{"long --return return", 2, argv_long_return, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_RETURN, false},
+		{"short -f flush", 2, argv_short_flush, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FLUSH, false},
+		{"long --flush flush", 2, argv_long_flush, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FLUSH, false},
+		{"long --force force", 2, argv_force, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FORCE, false},
+		{"short -q quiet", 2, argv_short_quiet, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_QUIET, false},
+		{"long --quiet quiet", 2, argv_long_quiet, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_QUIET, false}
 	};
-	unsigned int flags[] = {FLAG_APPEND, FLAG_APPEND, FLAG_RETURN, FLAG_RETURN,
-		FLAG_FLUSH, FLAG_FLUSH, FLAG_FORCE, FLAG_FORCE, FLAG_QUIET, FLAG_QUIET};
-	const char *names[] = {"short -a append", "long --append append",
-		"short -e return", "long --return return", "short -f flush",
-		"long --flush flush", "long --force force", "second long --force force",
-		"short -q quiet", "long --quiet quiet"};
 	int index;
 
-	for (index = 0; index < 10; index++)
-		parse_case(names[index], 2, cases[index], 0, "typescript", NULL,
-			0, 0, flags[index], false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_argument_tests(void)
 {
-	char *command_short[] = {"ft_script", "-c", "echo hello", NULL};
-	char *command_long[] = {"ft_script", "--command", "ls -la", NULL};
-	char *command_missing[] = {"ft_script", "-c", NULL};
-	char *echo_auto[] = {"ft_script", "-E", "auto", NULL};
-	char *echo_always[] = {"ft_script", "--echo", "always", NULL};
-	char *echo_never[] = {"ft_script", "-E", "never", NULL};
-	char *echo_bad[] = {"ft_script", "-E", "sometimes", NULL};
-	char *echo_missing[] = {"ft_script", "--echo", NULL};
+	char *argv_command_short[] = {"ft_script", "-c", "echo hello", NULL};
+	char *argv_command_long[] = {"ft_script", "--command", "ls -la", NULL};
+	char *argv_command_missing[] = {"ft_script", "-c", NULL};
+	char *argv_echo_auto[] = {"ft_script", "-E", "auto", NULL};
+	char *argv_echo_always[] = {"ft_script", "--echo", "always", NULL};
+	char *argv_echo_never[] = {"ft_script", "-E", "never", NULL};
+	char *argv_echo_bad[] = {"ft_script", "-E", "sometimes", NULL};
+	char *argv_echo_missing[] = {"ft_script", "--echo", NULL};
+	t_parser_test_case cases[] = {
+		{"short command", 3, argv_command_short, SUCCES, "typescript", "echo hello", ECHO_AUTO, 0, FLAG_COMMAND, false},
+		{"long command", 3, argv_command_long, SUCCES, "typescript", "ls -la", ECHO_AUTO, 0, FLAG_COMMAND, false},
+		{"missing command", 2, argv_command_missing, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false},
+		{"echo auto", 3, argv_echo_auto, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"echo always", 3, argv_echo_always, SUCCES, "typescript", NULL, ECHO_ALWAYS, 0, 0, false},
+		{"echo never", 3, argv_echo_never, SUCCES, "typescript", NULL, ECHO_NEVER, 0, 0, false},
+		{"invalid echo", 3, argv_echo_bad, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false},
+		{"missing echo", 2, argv_echo_missing, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false}
+	};
+	int index;
 
-	parse_case("16 short command", 3, command_short, 0, "typescript", "echo hello", 0, 0, FLAG_COMMAND, false);
-	parse_case("17 long command", 3, command_long, 0, "typescript", "ls -la", 0, 0, FLAG_COMMAND, false);
-	parse_case("18 missing command", 2, command_missing, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("19 echo auto", 3, echo_auto, 0, "typescript", NULL, 0, 0, 0, false);
-	parse_case("20 echo always", 3, echo_always, 0, "typescript", NULL, 1, 0, 0, false);
-	parse_case("21 echo never", 3, echo_never, 0, "typescript", NULL, 2, 0, 0, false);
-	parse_case("22 invalid echo", 3, echo_bad, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("23 missing echo", 2, echo_missing, 1, NULL, NULL, 0, 0, 0, false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_file_tests(void)
@@ -454,15 +504,28 @@ static void run_file_tests(void)
 	char *log_io_missing[] = {"ft_script", "--log-io", NULL};
 	char *log_in_missing[] = {"ft_script", "--log-in", NULL};
 	char *log_timing_missing[] = {"ft_script", "--log-timing", NULL};
+	t_parser_test_case cases[] = {
+		{"-B sets output target", 3, log_io, SUCCES, "io.log", NULL,
+			ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"-I has no output target", 3, log_in, SUCCES, NULL, NULL,
+			ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"-T sets timing log", 3, log_timing, SUCCES, "typescript", NULL,
+			ECHO_AUTO, 0, FLAG_LOG_TIMING, false},
+		{"-O sets output target", 3, output_target, SUCCES, "ok", NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"-O rejects two targets", 4, output_target_twice, FAILED, "ok", NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"--log-io requires a file", 2, log_io_missing, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"--log-in requires a file", 2, log_in_missing, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"--log-timing requires a file", 2, log_timing_missing, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false}
+	};
+	int index;
 
-	parse_case("24 log io", 3, log_io, 0, "typescript", NULL, 0, 0, FLAG_LOG_IO, false);
-	parse_case("25 log input", 3, log_in, 0, "typescript", NULL, 0, 0, FLAG_LOG_IN, false);
-	parse_case("26 log timing", 3, log_timing, 0, "typescript", NULL, 0, 0, FLAG_LOG_TIMING, false);
-	parse_case("27 -O adds output name to target", 3, output_target, 0, "ok", NULL, 0, 0, 0, false);
-	parse_case("28 -O with two targets is rejected", 4, output_target_twice, 1, "ok", NULL, 0, 0, 0, false);
-	parse_case("29 missing log io", 2, log_io_missing, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("30 missing log input", 2, log_in_missing, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("31 missing log timing", 2, log_timing_missing, 1, NULL, NULL, 0, 0, 0, false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_timing_option_tests(void)
@@ -473,16 +536,17 @@ static void run_timing_option_tests(void)
 	char *long_timing_file[] = {"ft_script", "--timing=timing.log", NULL};
 	char *long_timing_target[] = {"ft_script", "--timing", "session.log", NULL};
 
-	parse_timing_case("short timing uses default destination", 2, short_timing,
-		SUCCES, "typescript", NULL);
-	parse_timing_case("short timing accepts attached file", 2, short_timing_file,
-		SUCCES, "typescript", "timing.log");
-	parse_timing_case("long timing uses default destination", 2, long_timing,
-		SUCCES, "typescript", NULL);
-	parse_timing_case("long timing accepts equals file", 2, long_timing_file,
-		SUCCES, "typescript", "timing.log");
-	parse_timing_case("long timing keeps following target", 3, long_timing_target,
-		SUCCES, "session.log", NULL);
+	t_timing_test_case cases[] = {
+		{"short timing default destination", 2, short_timing, SUCCES, "typescript", NULL},
+		{"short timing attached file", 2, short_timing_file, SUCCES, "typescript", "timing.log"},
+		{"long timing default destination", 2, long_timing, SUCCES, "typescript", NULL},
+		{"long timing equals file", 2, long_timing_file, SUCCES, "typescript", "timing.log"},
+		{"long timing followed by target", 3, long_timing_target, SUCCES, "session.log", NULL}
+	};
+	int index;
+
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_timing_test_case(cases[index]);
 }
 
 static void run_format_limit_tests(void)
@@ -496,14 +560,20 @@ static void run_format_limit_tests(void)
 	char *limit_bad[] = {"ft_script", "-o", "12x", NULL};
 	char *limit_missing[] = {"ft_script", "--output-limit", NULL};
 
-	parse_case("32 classic format", 3, classic, 0, "typescript", NULL, 0, 0, 0, false);
-	parse_case("33 advanced format", 3, advanced, 0, "typescript", NULL, 0, 0, 0, false);
-	parse_case("34 invalid format", 3, format_bad, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("35 zero output limit", 3, limit_zero, 0, "typescript", NULL, 0, 0, 0, false);
-	parse_case("36 small output limit", 3, limit_small, 0, "typescript", NULL, 0, 42, 0, false);
-	parse_case("37 large output limit", 3, limit_large, 0, "typescript", NULL, 0, 4294967295, 0, false);
-	parse_case("38 invalid output limit", 3, limit_bad, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("39 missing output limit", 2, limit_missing, 1, NULL, NULL, 0, 0, 0, false);
+	t_parser_test_case cases[] = {
+		{"classic logging format", 3, classic, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"advanced logging format", 3, advanced, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"invalid logging format", 3, format_bad, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false},
+		{"zero output limit", 3, limit_zero, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"small output limit", 3, limit_small, SUCCES, "typescript", NULL, ECHO_AUTO, 42, 0, false},
+		{"large output limit", 3, limit_large, SUCCES, "typescript", NULL, ECHO_AUTO, 4294967295, 0, false},
+		{"invalid output limit", 3, limit_bad, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false},
+		{"missing output limit", 2, limit_missing, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false}
+	};
+	int index;
+
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_control_tests(void)
@@ -515,128 +585,146 @@ static void run_control_tests(void)
 	char *unknown[] = {"ft_script", "--not-an-option", NULL};
 	char *unknown_short[] = {"ft_script", "-z", NULL};
 
-	parse_case("40 help stops parsing", 3, help_short, 0, NULL, NULL, 0, 0, 0, true);
-	parse_case("41 long help", 2, help_long, 0, NULL, NULL, 0, 0, 0, true);
-	parse_case("42 version stops parsing", 3, version_short, 0, NULL, NULL, 0, 0, 0, true);
-	parse_case("43 long version", 2, version_long, 0, NULL, NULL, 0, 0, 0, true);
-	parse_case("44 unknown long option", 2, unknown, 1, NULL, NULL, 0, 0, 0, false);
-	parse_case("45 unknown short option", 2, unknown_short, 1, NULL, NULL, 0, 0, 0, false);
+	t_parser_test_case cases[] = {
+		{"short help stops parsing", 3, help_short, SUCCES, NULL, NULL, ECHO_AUTO, 0, 0, true},
+		{"long help stops parsing", 2, help_long, SUCCES, NULL, NULL, ECHO_AUTO, 0, 0, true},
+		{"short version stops parsing", 3, version_short, SUCCES, NULL, NULL, ECHO_AUTO, 0, 0, true},
+		{"long version stops parsing", 2, version_long, SUCCES, NULL, NULL, ECHO_AUTO, 0, 0, true},
+		{"unknown long option", 2, unknown, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false},
+		{"unknown short option", 2, unknown_short, FAILED, NULL, NULL, ECHO_AUTO, 0, 0, false}
+	};
+	int index;
+
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_combination_tests(void)
 {
-	char *cases[][8] = {
-		{"ft_script", "-a", "-q", "a.log", NULL},
-		{"ft_script", "--append", "--quiet", "b.log", NULL},
-		{"ft_script", "-c", "echo", "-q", NULL},
-		{"ft_script", "-E", "always", "-f", NULL},
-		{"ft_script", "-B", "io", "-I", "in", NULL},
-		{"ft_script", "-O", "out", "-T", "time", NULL},
-		{"ft_script", "-o", "1", "-m", "advanced", NULL},
-		{"ft_script", "--force", "-e", "-f", "-q", NULL},
-		{"ft_script", "-a", "-c", "run", "session.log", NULL}
+	char *argv_append_quiet[] = {"ft_script", "-a", "-q", "a.log", NULL};
+	char *argv_long_append_quiet[] = {"ft_script", "--append", "--quiet", "b.log", NULL};
+	char *argv_command_quiet[] = {"ft_script", "-c", "echo", "-q", NULL};
+	char *argv_echo_flush[] = {"ft_script", "-E", "always", "-f", NULL};
+	char *argv_io_input[] = {"ft_script", "-B", "io", "-I", "in", NULL};
+	char *argv_all_outputs[] = {"ft_script", "-I", "in", "-B", "both", "-O", "out", NULL};
+	char *argv_output_timing[] = {"ft_script", "-O", "out", "-T", "time", NULL};
+	char *argv_limit_format[] = {"ft_script", "-o", "1", "-m", "advanced", NULL};
+	char *argv_force_return[] = {"ft_script", "--force", "-e", "-f", "-q", NULL};
+	char *argv_command_target[] = {"ft_script", "-a", "-c", "run", "session.log", NULL};
+	t_parser_test_case cases[] = {
+		{"append and quiet", 4, argv_append_quiet, SUCCES, "a.log", NULL, ECHO_AUTO, 0, FLAG_APPEND | FLAG_QUIET, false},
+		{"long append and quiet", 4, argv_long_append_quiet, SUCCES, "b.log", NULL, ECHO_AUTO, 0, FLAG_APPEND | FLAG_QUIET, false},
+		{"command and quiet", 4, argv_command_quiet, SUCCES, "typescript", "echo", ECHO_AUTO, 0, FLAG_COMMAND | FLAG_QUIET, false},
+		{"echo always and flush", 4, argv_echo_flush, SUCCES, "typescript", NULL, ECHO_ALWAYS, 0, FLAG_FLUSH, false},
+		{"log io and input", 5, argv_io_input, SUCCES, "io", NULL, ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"input, io, and output combined", 7, argv_all_outputs, SUCCES, "out", NULL, ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"output target and timing", 5, argv_output_timing, SUCCES, "out", NULL, ECHO_AUTO, 0, FLAG_LOG_TIMING, false},
+		{"output limit and format", 6, argv_limit_format, SUCCES, "typescript", NULL, ECHO_AUTO, 1, 0, false},
+		{"force, return, flush, quiet", 5, argv_force_return, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FORCE | FLAG_RETURN | FLAG_FLUSH | FLAG_QUIET, false},
+		{"append command and target", 5, argv_command_target, SUCCES, "session.log", "run", ECHO_AUTO, 0, FLAG_APPEND | FLAG_COMMAND, false}
 	};
-	unsigned int flags[] = {FLAG_APPEND | FLAG_QUIET, FLAG_APPEND | FLAG_QUIET,
-		FLAG_COMMAND | FLAG_QUIET, FLAG_FLUSH, FLAG_LOG_IO | FLAG_LOG_IN,
-		FLAG_LOG_TIMING, 0, FLAG_FORCE | FLAG_RETURN | FLAG_FLUSH | FLAG_QUIET,
-		FLAG_APPEND | FLAG_COMMAND};
-	const char *commands[] = {NULL, NULL, "echo", NULL, NULL, NULL, NULL, NULL, "run"};
-	const char *targets[] = {"a.log", "b.log", "typescript", "typescript", "typescript",
-		"out", "typescript", "typescript", "session.log"};
-	int argc_values[] = {4, 4, 4, 4, 6, 5, 6, 5, 5};
 	int index;
 
-	for (index = 0; index < 9; index++)
-		parse_case(index == 0 ? "append quiet with target" : index == 1 ? "long append quiet with target" :
-			index == 2 ? "command followed by quiet" : index == 3 ? "echo always and flush" :
-			index == 4 ? "log io and log input" : index == 5 ? "output target and timing" :
-			index == 6 ? "output limit and advanced format" : index == 7 ? "force return flush quiet" :
-			"append command with target", argc_values[index], cases[index], 0, targets[index],
-			commands[index], index == 3 ? 1 : 0, index == 6 ? 1 : 0, flags[index], false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_matrix_tests(void)
 {
-	char *echo_values[] = {"auto", "always", "never"};
-	char *format_values[] = {"classic", "advanced"};
-	char *limits[] = {"7", "99", "1000", "65535", "123456", "2147483647", "42", "8", "16", "32"};
-	char *argv_case[6];
+	char *argv_echo_auto[] = {"ft_script", "-E", "auto", "matrix.log", NULL};
+	char *argv_echo_always[] = {"ft_script", "-E", "always", "matrix.log", NULL};
+	char *argv_echo_never[] = {"ft_script", "-E", "never", "matrix.log", NULL};
+	char *argv_classic[] = {"ft_script", "-m", "classic", "format.log", NULL};
+	char *argv_advanced[] = {"ft_script", "-m", "advanced", "format.log", NULL};
+	char *argv_limit_7[] = {"ft_script", "-o", "7", "limit.log", NULL};
+	char *argv_limit_99[] = {"ft_script", "-o", "99", "limit.log", NULL};
+	char *argv_limit_1000[] = {"ft_script", "-o", "1000", "limit.log", NULL};
+	char *argv_limit_65535[] = {"ft_script", "-o", "65535", "limit.log", NULL};
+	char *argv_limit_123456[] = {"ft_script", "-o", "123456", "limit.log", NULL};
+	char *argv_limit_2147483647[] = {"ft_script", "-o", "2147483647", "limit.log", NULL};
+	char *argv_limit_42[] = {"ft_script", "-o", "42", "limit.log", NULL};
+	char *argv_limit_8[] = {"ft_script", "-o", "8", "limit.log", NULL};
+	char *argv_limit_16[] = {"ft_script", "-o", "16", "limit.log", NULL};
+	char *argv_limit_32[] = {"ft_script", "-o", "32", "limit.log", NULL};
+	t_parser_test_case cases[] = {
+		{"echo auto with target", 4, argv_echo_auto, SUCCES, "matrix.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"echo always with target", 4, argv_echo_always, SUCCES, "matrix.log", NULL, ECHO_ALWAYS, 0, 0, false},
+		{"echo never with target", 4, argv_echo_never, SUCCES, "matrix.log", NULL, ECHO_NEVER, 0, 0, false},
+		{"classic format with target", 4, argv_classic, SUCCES, "format.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"advanced format with target", 4, argv_advanced, SUCCES, "format.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"limit 7 with target", 4, argv_limit_7, SUCCES, "limit.log", NULL, ECHO_AUTO, 7, 0, false},
+		{"limit 99 with target", 4, argv_limit_99, SUCCES, "limit.log", NULL, ECHO_AUTO, 99, 0, false},
+		{"limit 1000 with target", 4, argv_limit_1000, SUCCES, "limit.log", NULL, ECHO_AUTO, 1000, 0, false},
+		{"limit 65535 with target", 4, argv_limit_65535, SUCCES, "limit.log", NULL, ECHO_AUTO, 65535, 0, false},
+		{"limit 123456 with target", 4, argv_limit_123456, SUCCES, "limit.log", NULL, ECHO_AUTO, 123456, 0, false},
+		{"limit 2147483647 with target", 4, argv_limit_2147483647, SUCCES, "limit.log", NULL, ECHO_AUTO, 2147483647, 0, false},
+		{"limit 42 with target", 4, argv_limit_42, SUCCES, "limit.log", NULL, ECHO_AUTO, 42, 0, false},
+		{"limit 8 with target", 4, argv_limit_8, SUCCES, "limit.log", NULL, ECHO_AUTO, 8, 0, false},
+		{"limit 16 with target", 4, argv_limit_16, SUCCES, "limit.log", NULL, ECHO_AUTO, 16, 0, false},
+		{"limit 32 with target", 4, argv_limit_32, SUCCES, "limit.log", NULL, ECHO_AUTO, 32, 0, false}
+	};
 	int index;
 
-	argv_case[0] = "ft_script";
-	argv_case[1] = "-E";
-	for (index = 0; index < 3; index++)
-	{
-		argv_case[2] = echo_values[index];
-		argv_case[3] = "matrix.log";
-		argv_case[4] = NULL;
-		parse_case(index == 0 ? "echo auto with target" : index == 1 ? "echo always with target" :
-			"echo never with target", 4, argv_case, 0, "matrix.log", NULL,
-			index, 0, 0, false);
-	}
-	argv_case[1] = "-m";
-	for (index = 0; index < 2; index++)
-	{
-		argv_case[2] = format_values[index];
-		argv_case[3] = "format.log";
-		argv_case[4] = NULL;
-		parse_case(index == 0 ? "classic format with target" : "advanced format with target",
-			4, argv_case, 0, "format.log", NULL,
-			0, 0, 0, false);
-	}
-	argv_case[1] = "-o";
-	for (index = 0; index < 10; index++)
-	{
-		argv_case[2] = limits[index];
-		argv_case[3] = "limit.log";
-		argv_case[4] = NULL;
-		parse_case("numeric output limit with target", 4, argv_case, 0, "limit.log", NULL, 0,
-			ft_atoll(limits[index]), 0, false);
-	}
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_extra_tests(void)
 {
-	char *targets[] = {"one", "two.log", "typescript", "a/b.log", ".hidden",
-		"file with spaces", "123", "dash-x", "UPPER", "last.log"};
-	char *switches[] = {"-a", "--append", "-e", "--return", "-f", "--flush",
-		"--force", "-q", "--quiet", "-a"};
-	unsigned int switch_flags[] = {FLAG_APPEND, FLAG_APPEND, FLAG_RETURN, FLAG_RETURN,
-		FLAG_FLUSH, FLAG_FLUSH, FLAG_FORCE, FLAG_QUIET, FLAG_QUIET, FLAG_APPEND};
-	char *log_cases[][3] = {
-		{"ft_script", "--log-io", "all.log"},
-		{"ft_script", "--log-in", "in.log"},
-		{"ft_script", "--log-timing", "time.log"},
-		{"ft_script", "-I", "input.log"},
-		{"ft_script", "-O", "output.log"}
+	char *argv_one[] = {"ft_script", "one", NULL};
+	char *argv_two[] = {"ft_script", "two.log", NULL};
+	char *argv_typescript[] = {"ft_script", "typescript", NULL};
+	char *argv_path[] = {"ft_script", "a/b.log", NULL};
+	char *argv_hidden[] = {"ft_script", ".hidden", NULL};
+	char *argv_spaces[] = {"ft_script", "file with spaces", NULL};
+	char *argv_number[] = {"ft_script", "123", NULL};
+	char *argv_dash_name[] = {"ft_script", "dash-x", NULL};
+	char *argv_upper[] = {"ft_script", "UPPER", NULL};
+	char *argv_last[] = {"ft_script", "last.log", NULL};
+	char *argv_a[] = {"ft_script", "-a", NULL};
+	char *argv_append[] = {"ft_script", "--append", NULL};
+	char *argv_e[] = {"ft_script", "-e", NULL};
+	char *argv_return[] = {"ft_script", "--return", NULL};
+	char *argv_f[] = {"ft_script", "-f", NULL};
+	char *argv_flush[] = {"ft_script", "--flush", NULL};
+	char *argv_force[] = {"ft_script", "--force", NULL};
+	char *argv_q[] = {"ft_script", "-q", NULL};
+	char *argv_quiet[] = {"ft_script", "--quiet", NULL};
+	char *argv_log_io[] = {"ft_script", "--log-io", "all.log", NULL};
+	char *argv_log_in[] = {"ft_script", "--log-in", "in.log", NULL};
+	char *argv_log_timing[] = {"ft_script", "--log-timing", "time.log", NULL};
+	char *argv_input[] = {"ft_script", "-I", "input.log", NULL};
+	char *argv_output[] = {"ft_script", "-O", "output.log", NULL};
+	t_parser_test_case cases[] = {
+		{"target one", 2, argv_one, SUCCES, "one", NULL, ECHO_AUTO, 0, 0, false},
+		{"target two.log", 2, argv_two, SUCCES, "two.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"target typescript", 2, argv_typescript, SUCCES, "typescript", NULL, ECHO_AUTO, 0, 0, false},
+		{"target nested path", 2, argv_path, SUCCES, "a/b.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"target hidden file", 2, argv_hidden, SUCCES, ".hidden", NULL, ECHO_AUTO, 0, 0, false},
+		{"target with spaces", 2, argv_spaces, SUCCES, "file with spaces", NULL, ECHO_AUTO, 0, 0, false},
+		{"numeric target", 2, argv_number, SUCCES, "123", NULL, ECHO_AUTO, 0, 0, false},
+		{"dash-named target", 2, argv_dash_name, SUCCES, "dash-x", NULL, ECHO_AUTO, 0, 0, false},
+		{"uppercase target", 2, argv_upper, SUCCES, "UPPER", NULL, ECHO_AUTO, 0, 0, false},
+		{"last target", 2, argv_last, SUCCES, "last.log", NULL, ECHO_AUTO, 0, 0, false},
+		{"-a append", 2, argv_a, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_APPEND, false},
+		{"--append append", 2, argv_append, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_APPEND, false},
+		{"-e return", 2, argv_e, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_RETURN, false},
+		{"--return return", 2, argv_return, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_RETURN, false},
+		{"-f flush", 2, argv_f, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FLUSH, false},
+		{"--flush flush", 2, argv_flush, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FLUSH, false},
+		{"--force force", 2, argv_force, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_FORCE, false},
+		{"-q quiet", 2, argv_q, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_QUIET, false},
+		{"--quiet quiet", 2, argv_quiet, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_QUIET, false},
+		{"--log-io destination", 3, argv_log_io, SUCCES, "all.log", NULL, ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"--log-in without output", 3, argv_log_in, SUCCES, NULL, NULL, ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"--log-timing destination", 3, argv_log_timing, SUCCES, "typescript", NULL, ECHO_AUTO, 0, FLAG_LOG_TIMING, false},
+		{"-I without output", 3, argv_input, SUCCES, NULL, NULL, ECHO_AUTO, 0, FLAG_LOG_IN, false},
+		{"-O output destination", 3, argv_output, SUCCES, "output.log", NULL, ECHO_AUTO, 0, 0, false}
 	};
-	unsigned int log_flags[] = {FLAG_LOG_IO, FLAG_LOG_IN, FLAG_LOG_TIMING,
-		FLAG_LOG_IN, 0};
-	char *limits[] = {"1", "2", "10", "999999", "2147483648"};
-	char *limit_cases[5][4];
 	int index;
 
-	for (index = 0; index < 10; index++)
-	{
-		parse_case("target path and filename", 2, (char *[]){"ft_script", targets[index], NULL},
-			0, targets[index], NULL, 0, 0, 0, false);
-	}
-	for (index = 0; index < 10; index++)
-		parse_case("repeated boolean switch alias", 2, (char *[]){"ft_script", switches[index], NULL},
-			0, "typescript", NULL, 0, 0, switch_flags[index], false);
-	for (index = 0; index < 5; index++)
-		parse_case(index == 4 ? "-O output destination" : "long and short log destination",
-			3, log_cases[index], 0, index == 4 ? "output.log" : "typescript", NULL,
-			0, 0, log_flags[index], false);
-	for (index = 0; index < 5; index++)
-	{
-		limit_cases[index][0] = "ft_script";
-		limit_cases[index][1] = "-o";
-		limit_cases[index][2] = limits[index];
-		limit_cases[index][3] = NULL;
-		parse_case("boundary numeric output limit", 3, limit_cases[index], 0, "typescript", NULL,
-			0, ft_atoll(limits[index]), 0, false);
-	}
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_invalid_input_tests(void)
@@ -649,23 +737,28 @@ static void run_invalid_input_tests(void)
 	char *double_dash[] = {"ft_script", "--", NULL};
 	char *unknown_short[] = {"ft_script", "-z", NULL};
 	char *unknown_long[] = {"ft_script", "--unknown-option", NULL};
+	t_parser_test_case cases[] = {
+		{"empty output limit", 3, empty_limit, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"negative output limit", 3, negative_limit, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"signed output limit", 3, signed_limit, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"empty echo mode", 3, empty_echo, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"empty logging format", 3, empty_format, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"bare double dash", 2, double_dash, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"unknown short option", 2, unknown_short, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false},
+		{"unknown long option", 2, unknown_long, FAILED, NULL, NULL,
+			ECHO_AUTO, 0, 0, false}
+	};
+	int index;
 
-	parse_case("empty output limit is rejected", 3, empty_limit, FAILED, NULL,
-		NULL, ECHO_AUTO, 0, 0, false);
-	parse_case("negative output limit is rejected", 3, negative_limit, FAILED,
-		NULL, NULL, ECHO_AUTO, 0, 0, false);
-	parse_case("signed output limit is rejected", 3, signed_limit, FAILED, NULL,
-		NULL, ECHO_AUTO, 0, 0, false);
-	parse_case("empty echo mode is rejected", 3, empty_echo, FAILED, NULL, NULL,
-		ECHO_AUTO, 0, 0, false);
-	parse_case("empty logging format is rejected", 3, empty_format, FAILED, NULL,
-		NULL, ECHO_AUTO, 0, 0, false);
-	parse_case("bare double dash is rejected", 2, double_dash, FAILED, NULL, NULL,
-		ECHO_AUTO, 0, 0, false);
-	parse_case("unknown short option is rejected", 2, unknown_short, FAILED, NULL,
-		NULL, ECHO_AUTO, 0, 0, false);
-	parse_case("unknown long option is rejected", 2, unknown_long, FAILED, NULL,
-		NULL, ECHO_AUTO, 0, 0, false);
+	for (index = 0; index < (int)(sizeof(cases) / sizeof(*cases)); index++)
+		run_parser_test_case(cases[index]);
 }
 
 static void run_api_safety_tests(void)

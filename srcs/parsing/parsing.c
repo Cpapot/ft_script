@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/28 09:20:01 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 09:52:17 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,8 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 			if (argv[*index + 1] == NULL)
 				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
-			data->logIo = argv[*index];
+			data->logIn = argv[*index];
+			data->logOut = argv[*index];
 			return SUCCES;
 		case LOG_IN_F:
 			if (argv[*index + 1] == NULL)
@@ -99,8 +100,8 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 			if (argv[*index + 1] == NULL)
 				return print_error(MISSING_ARG, argv[*index], true, FAILED);
 			(*index)++;
-			if (!data->target)
-				data->target = argv[*index];
+			if (!data->logOut)
+				data->logOut = argv[*index];
 			else
 				return print_error(UNEXPECTED_ARG, NULL, true, FAILED);
 			return SUCCES;
@@ -160,13 +161,13 @@ int	parsing(int argc, char **argv, t_script_settings *data)
 		}
 		else
 		{
-			if (data->target == NULL)
-				data->target = argv[i];
+			if (data->logOut == NULL && data->logIn == NULL)
+				data->logOut = argv[i];
 			else
 				return print_error(UNEXPECTED_ARG, NULL, true, 1);
 		}
 	}
-	if (data->target == NULL)
-		data->target = "typescript";
+	if (data->logOut == NULL && data->logIn == NULL)
+		data->logOut = "typescript";
 	return SUCCES;
 }

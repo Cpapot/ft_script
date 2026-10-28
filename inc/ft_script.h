@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/28 09:23:44 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 09:51:03 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,15 +47,13 @@ enum	e_return {
 
 typedef struct s_script_settings
 {
-	char	*target;		//if none target will be typescript
-	
+	char	*logOut;		//if none logOut will be typescript
 	bool	isAppend;
 	char	*command;				//if a command is given it will point to the corresponding argv, NULL otherwise
 	int		echoMode;				//default mode is auto (0)
 	bool	isReturn;
 	bool	isFlush;
 	bool	isForce;
-	char	*logIo;
 	char	*logIn;
 	char	*logTiming;
 	int		loggingFormat;			//default Classic (0)
@@ -70,7 +68,7 @@ typedef struct s_script_data
 {
 	t_script_settings	settings;
 	
-	int					targetFd;
+	int					logOutFd;
 	int					logIoFd;
 	int					logInFd;
 	int					logTimingFd;
