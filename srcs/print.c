@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/10/28 09:24:56 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 09:50:25 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,22 +30,38 @@ void	print_start_info(t_script_data data)
 	if (!data.settings.isQuiet)
 	{
 		write(SCRIPT_WRITE_FD, START_MESSAGE, ft_strlen(START_MESSAGE));
-		write(SCRIPT_WRITE_FD, data.settings.target, ft_strlen(data.settings.target));
-		write(SCRIPT_WRITE_FD, "`\n", 2);
+		if (data.settings.logOut)
+		{
+			write(SCRIPT_WRITE_FD, OUTPUT_MESSAGE, ft_strlen(OUTPUT_MESSAGE));
+			write(SCRIPT_WRITE_FD, data.settings.logOut, ft_strlen(data.settings.logOut));
+			write(SCRIPT_WRITE_FD, "`", 1);
+		}
+		if (data.settings.logIn)
+		{
+			write(SCRIPT_WRITE_FD, INPUT_MESSAGE, ft_strlen(INPUT_MESSAGE));
+			write(SCRIPT_WRITE_FD, data.settings.logIn, ft_strlen(data.settings.logIn));
+			write(SCRIPT_WRITE_FD, "`", 1);
+		}
+		if (data.settings.logTiming)
+		{
+			write(SCRIPT_WRITE_FD, TIMING_MESSAGE, ft_strlen(TIMING_MESSAGE));
+			write(SCRIPT_WRITE_FD, data.settings.logTiming, ft_strlen(data.settings.logTiming));
+			write(SCRIPT_WRITE_FD, "`", 1);
+		}
+		write(SCRIPT_WRITE_FD, "\n", 1);
 	}
 }
 
 //DEBUG FUCTION TO REMOVE LATER
 void print_settings(t_script_settings data)
 {
-	ft_printf("target: %s\n", data.target);
+	ft_printf("logOut: %s\n", data.logOut);
 	ft_printf("isAppend: %s\n", data.isAppend ? "true" : "false");
 	ft_printf("command: %s\n", data.command);
 	ft_printf("echoMode: %d\n", data.echoMode);
 	ft_printf("isReturn: %s\n", data.isReturn ? "true" : "false");
 	ft_printf("isFlush: %s\n", data.isFlush ? "true" : "false");
 	ft_printf("isForce: %s\n", data.isForce ? "true" : "false");
-	ft_printf("logIo: %s\n", data.logIo);
 	ft_printf("logIn: %s\n", data.logIn);
 	ft_printf("logTiming: %s\n", data.logTiming);
 	ft_printf("loggingFormat: %d\n", data.loggingFormat);
