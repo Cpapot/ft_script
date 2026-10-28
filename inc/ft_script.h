@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 15:01:27 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 09:23:44 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ typedef struct s_script_settings
 	bool	isForce;
 	char	*logIo;
 	char	*logIn;
-	char	*logOut;
 	char	*logTiming;
 	int		loggingFormat;			//default Classic (0)
 	off_t	outputLimit;			//default no limit (0)
@@ -74,6 +73,8 @@ typedef struct s_script_data
 	int					targetFd;
 	int					logIoFd;
 	int					logInFd;
+	int					logTimingFd;
+	
 }	t_script_data;
 
 int		print_error(char *errorType, char *errorInfo, bool printHelp, int retValue);

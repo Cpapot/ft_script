@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/10/27 15:12:50 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/28 09:24:56 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ void print_settings(t_script_settings data)
 	ft_printf("isForce: %s\n", data.isForce ? "true" : "false");
 	ft_printf("logIo: %s\n", data.logIo);
 	ft_printf("logIn: %s\n", data.logIn);
-	ft_printf("logOut: %s\n", data.logOut);
 	ft_printf("logTiming: %s\n", data.logTiming);
 	ft_printf("loggingFormat: %d\n", data.loggingFormat);
 	ft_printf("outputLimit: %u\n", (unsigned int)data.outputLimit);
