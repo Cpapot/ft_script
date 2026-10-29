@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 14:01:28 by coren             #+#    #+#             */
-/*   Updated: 2026/10/27 14:36:27 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/29 12:17:26 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 # include "ft_script.h"
 # include <fcntl.h>
 # include <unistd.h>
+# include <sys/ioctl.h>
+
 
 # define EACCES_ERROR	"Permission denied cannot open: "
 # define EISDIR_ERROR	"Is a directory cannot open: "

@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/28 09:51:03 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/29 13:57:21 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "../libft/includes/libft.h"
 # include <stdbool.h>
 # include <errno.h>
+# include <stdalign.h>
 
 # ifdef FT_SCRIPT_TEST
 #  define SCRIPT_WRITE_FD parsing_test_fd
@@ -24,7 +25,8 @@ extern int parsing_test_fd;
 #  define SCRIPT_WRITE_FD 1
 # endif
 
-# define PATH_MAX	4096
+# define PATH_MAX				256
+# define TERMIOS_MAX			128
 
 # define ERROR_PRINT	"ft_script: "
 # define HELP_INFO		"Try 'ft_script --help' for more information.\n"
@@ -66,12 +68,17 @@ typedef struct s_script_settings
 
 typedef struct s_script_data
 {
-	t_script_settings	settings;
+	t_script_settings			settings;
 	
-	int					logOutFd;
-	int					logIoFd;
-	int					logInFd;
-	int					logTimingFd;
+	alignas(16) unsigned char	origTermiosStruct[TERMIOS_MAX];
+
+	char						slavePath[PATH_MAX];
+	int							unlockPty;
+	
+	int							masterFd;
+	int							logOutFd;
+	int							logInFd;
+	int							logTimingFd;
 	
 }	t_script_data;
 

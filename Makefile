@@ -14,7 +14,8 @@ SRCS		=	main.c						\
 				parsing/parsing.c			\
 				parsing/parsing_utils.c		\
 				files.c						\
-				print.c
+				print.c						\
+				term.c
 
 TEST_NAME	= tests/test_parsing
 
