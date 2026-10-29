@@ -23,7 +23,8 @@ STRINGSRC	=	ft_strmapi.c ft_striteri.c \
 				ft_strdup.c ft_strtrim.c \
 				ft_split.c ft_itoa.c \
 				ft_strjoin.c ft_atoll.c \
-				ft_strcmp.c ft_split_no.c
+				ft_strcmp.c ft_split_no.c	\
+				ft_itoa_r.c
 
 MEMSRC		=	ft_memset.c ft_bzero.c \
 				ft_memcpy.c ft_memmove.c \
