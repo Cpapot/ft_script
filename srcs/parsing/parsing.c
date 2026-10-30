@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/10/28 09:52:17 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/30 12:04:47 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,6 +140,19 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 			return SUCCES;
 	}
 	return FAILED;
+}
+
+void parse_envp(char **envp, t_script_settings *data)
+{
+	for (int i = 0; envp[i]; i++)
+	{
+		if (!ft_strncmp(envp[i], "SHELL=", 6))
+		{
+			for (int u = 6; envp[i][u - 1]; u++)
+				envp[i][u - 6] = envp[i][u];
+			data->shellPath = envp[i];
+		}	
+	}
 }
 
 int	parsing(int argc, char **argv, t_script_settings *data)

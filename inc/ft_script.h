@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/29 13:57:21 by coren            ###   ########.fr       */
+/*   Updated: 2026/10/30 11:33:53 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,9 @@ typedef struct s_script_settings
 	off_t	outputLimit;			//default no limit (0)
 	bool	isQuiet;
 	char	*timing;
-	
 	bool	isClosing;
+
+	char	*shellPath;
 }	t_script_settings;
 
 typedef struct s_script_data
