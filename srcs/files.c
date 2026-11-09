@@ -6,13 +6,13 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 14:01:19 by coren             #+#    #+#             */
-/*   Updated: 2026/10/29 13:12:23 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/09 13:55:37 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "files.h"
 
-static int	open_unique_file(char *name, int flags, int *fdDest)
+int	open_unique_file(char *name, int flags, int *fdDest)
 {
 	int fd = open(name, flags, 0644);
 	if (fd < 0)

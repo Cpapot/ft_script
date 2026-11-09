@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/10/30 11:33:53 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/09 13:19:18 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ extern int parsing_test_fd;
 
 # define PATH_MAX				256
 # define TERMIOS_MAX			128
+# define TIMEVAL_MAX			128
 
 # define ERROR_PRINT	"ft_script: "
 # define HELP_INFO		"Try 'ft_script --help' for more information.\n"
@@ -71,6 +72,8 @@ typedef struct s_script_data
 {
 	t_script_settings			settings;
 	
+	alignas(16) unsigned char	lastTimeStruct[TIMEVAL_MAX];
+	alignas(16) unsigned char	currentTimeStruct[TIMEVAL_MAX];
 	alignas(16) unsigned char	origTermiosStruct[TERMIOS_MAX];
 
 	char						slavePath[PATH_MAX];
