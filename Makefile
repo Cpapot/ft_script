@@ -17,7 +17,8 @@ SRCS		=	main.c						\
 				print.c						\
 				term.c						\
 				time.c						\
-				child.c
+				child.c						\
+				session.c
 
 TEST_NAME	= tests/test_parsing
 
