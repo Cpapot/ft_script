@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 12:40:17 by coren             #+#    #+#             */
-/*   Updated: 2026/11/10 12:55:20 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 12:59:39 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,6 @@ int	handle_pty_session(t_script_data *data)
 	char	buffer[256];
 	char	time_buf[64];
 	int		bytes_read;
-
-	if (init_time(data))
-		return FAILED;
 
 	while (42)
 	{

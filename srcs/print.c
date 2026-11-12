@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/11/10 12:53:58 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 13:31:31 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,18 @@ int		print_error(char *errorType, char *errorInfo, bool printHelp, int retValue)
 		write(SCRIPT_WRITE_FD, HELP_INFO, ft_strlen(HELP_INFO));
 
 	return retValue;
+}
+
+int get_strtime(char *dest, t_script_data *data);
+
+void	write_start_info(t_script_data *data)
+{
+	char	buffer[BUFFER_SIZE];
+	ft_bzero(buffer, BUFFER_SIZE);
+	char	*message[] = START_FILE_MESSAGE;
+	(void )data;
+	ft_strlcat(buffer, message[0], BUFFER_SIZE);
+	get_strtime(buffer, data);
 }
 
 void	print_start_info(t_script_data data)
@@ -48,7 +60,7 @@ void	print_start_info(t_script_data data)
 			write(SCRIPT_WRITE_FD, data.settings.logTiming, ft_strlen(data.settings.logTiming));
 			write(SCRIPT_WRITE_FD, "`", 1);
 		}
-		write(SCRIPT_WRITE_FD, "\n", 1);
+		write(SCRIPT_WRITE_FD, ".\n", 2);
 	}
 }
 

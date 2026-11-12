@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:06:26 by coco              #+#    #+#             */
-/*   Updated: 2026/11/10 12:45:45 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 13:26:23 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ int		set_term_to_raw_mode(t_script_data *data);
 int		restore_orig_term(t_script_data *data);
 int		child_process(t_script_data *data);
 int		handle_pty_session(t_script_data *data);
+void	write_start_info(t_script_data *data);
+int		init_time(t_script_data *data);
 
 
 int	script_test_exec(t_script_data	*data)
@@ -33,7 +35,12 @@ int	script_test_exec(t_script_data	*data)
 	
 	if (save_termios_struct(data) || set_term_to_raw_mode(data))
 		return FAILED;
-		
+	
+	if (init_time(data))
+		return FAILED;
+
+	write_start_info(data);
+	
     pid_t pid = fork();
     if (pid == -1)
         return 1; //TODO CHECK ERROR
