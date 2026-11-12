@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/11/12 14:22:07 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:42:36 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,10 @@ typedef struct s_script_data
 	int							logInFd;
 	int							logTimingFd;
 
-	char	columns[5];
-	char	lines[5];
+	char						columns[5];
+	char						lines[5];
+
+	int							childExitCode;
 	
 }	t_script_data;
 

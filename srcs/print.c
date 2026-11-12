@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/11/12 14:24:06 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:44:13 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,33 @@ int		print_error(char *errorType, char *errorInfo, bool printHelp, int retValue)
 }
 
 int get_strtime(char *dest, t_script_data *data);
+
+void	print_end_info(t_script_data data)
+{
+	if (!data.settings.isQuiet)
+	{
+		write(1, END_MESSAGE, ft_strlen(END_MESSAGE));
+	}
+}
+
+void	write_end_info(t_script_data *data)
+{
+	char	buffer[BUFFER_SIZE];
+	char	itoaBuff[5];
+	ft_bzero(buffer, BUFFER_SIZE);
+	ft_bzero(itoaBuff, 5);
+	char	*message[] = END_FILE_MESSAGE;
+
+	ft_itoa_r(data->childExitCode, itoaBuff, 5);
+
+	ft_strlcat(buffer, message[0], BUFFER_SIZE);
+	get_strtime(buffer, data);
+	ft_strlcat(buffer, message[1], BUFFER_SIZE);
+	ft_strlcat(buffer, itoaBuff, BUFFER_SIZE);
+	ft_strlcat(buffer, message[2], BUFFER_SIZE);
+	if (data->logOutFd)
+		write(data->logOutFd, buffer, ft_strlen(buffer));
+}
 
 void	write_start_info(t_script_data *data)
 {

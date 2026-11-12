@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/30 12:29:04 by coren             #+#    #+#             */
-/*   Updated: 2026/11/12 13:31:06 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:38:48 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ static int is_leap_year(int year) {
     return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 }
 
-int	init_time(t_script_data *data)
+int	update_time(t_script_data *data)
 {
 	if (gettimeofday((struct timeval *)(data->lastTimeStruct), NULL) == -1)
 		return FAILED; //TODO PRINT ERROR

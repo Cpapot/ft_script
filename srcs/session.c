@@ -6,14 +6,13 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/10 12:40:17 by coren             #+#    #+#             */
-/*   Updated: 2026/11/12 12:59:39 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:39:13 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_script.h"
 #include <stdio.h>
 
-int		init_time(t_script_data *data);
 double	get_elapsed_time(t_script_data *data);
 
 int	handle_pty_session(t_script_data *data)
