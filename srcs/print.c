@@ -6,11 +6,12 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/11/12 13:31:31 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:24:06 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "print.h"
+#include <sys/ioctl.h>
 
 int		print_error(char *errorType, char *errorInfo, bool printHelp, int retValue)
 {
@@ -32,9 +33,27 @@ void	write_start_info(t_script_data *data)
 	char	buffer[BUFFER_SIZE];
 	ft_bzero(buffer, BUFFER_SIZE);
 	char	*message[] = START_FILE_MESSAGE;
-	(void )data;
+	
+	struct winsize size; // to move
+	
+	ioctl(1, TIOCGWINSZ, &size);
+	//check error
+	ft_itoa_r(size.ws_col, data->columns, 5);
+	ft_itoa_r(size.ws_row, data->lines, 5);
+
 	ft_strlcat(buffer, message[0], BUFFER_SIZE);
 	get_strtime(buffer, data);
+	ft_strlcat(buffer, message[1], BUFFER_SIZE);
+	ft_strlcat(buffer, data->settings.termEnv, BUFFER_SIZE);
+	ft_strlcat(buffer, message[2], BUFFER_SIZE);
+	ft_strlcat(buffer, data->slavePath, BUFFER_SIZE);
+	ft_strlcat(buffer, message[3], BUFFER_SIZE);
+	ft_strlcat(buffer, data->columns, BUFFER_SIZE);
+	ft_strlcat(buffer, message[4], BUFFER_SIZE);
+	ft_strlcat(buffer, data->lines, BUFFER_SIZE);
+	ft_strlcat(buffer, message[5], BUFFER_SIZE);
+	if (data->logOutFd)
+		write(data->logOutFd, buffer, ft_strlen(buffer));
 }
 
 void	print_start_info(t_script_data data)

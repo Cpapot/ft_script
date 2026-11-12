@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/11/09 13:19:18 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:22:07 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,8 @@ typedef struct s_script_settings
 	char	*timing;
 	bool	isClosing;
 
-	char	*shellPath;
+	char	*shellEnv;
+	char	*termEnv;
 }	t_script_settings;
 
 typedef struct s_script_data
@@ -83,6 +84,9 @@ typedef struct s_script_data
 	int							logOutFd;
 	int							logInFd;
 	int							logTimingFd;
+
+	char	columns[5];
+	char	lines[5];
 	
 }	t_script_data;
 

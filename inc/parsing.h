@@ -6,7 +6,7 @@
 /*   By: coren <coren@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:25:27 by coco              #+#    #+#             */
-/*   Updated: 2026/10/27 14:23:30 by coren            ###   ########.fr       */
+/*   Updated: 2026/11/12 14:15:14 by coren            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,9 @@
 
 # define LOGGING_FORMAT_LIST	{"classic", "advanced"}
 # define LOGGING_FORMAT_COUNT	2
+
+# define ENV_LIST				{"SHELL=", "TERM="}
+# define ENV_LIST_SIZE			2
 
 /*				parser error				*/
 # define UNKNOWN_FLAG				"Unknown flag: "
