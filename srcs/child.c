@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 13:38:17 by coren             #+#    #+#             */
-/*   Updated: 2026/11/24 13:12:31 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:51:18 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,16 @@ int	child_process(t_script_data *data)
     dup2(slave_fd, STDERR_FILENO);
 	close(slave_fd);
 	
-
-	char *args[] = {data->shellEnv, NULL};
-    execve(data->shellEnv, args, data->envp); //check error
+	if (data->settings.command)
+	{
+		char *args[] = {data->shellEnv, "-c", data->settings.command, NULL};
+		execve(data->shellEnv, args, data->envp);
+	}
+	else
+	{
+		char *args[] = {data->shellEnv, NULL};
+		execve(data->shellEnv, args, data->envp); //check error
+	}
 
 	return SUCCES;
 }
