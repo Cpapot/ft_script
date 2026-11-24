@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:23:42 by coco              #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:33 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:11:39 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,9 +142,12 @@ static int store_data(int flagId, int *index, char **argv, t_script_settings *da
 	return FAILED;
 }
 
-void parse_envp(char **envp, t_script_settings *data)
+void parse_envp(char **envp, t_script_data *data)
 {	
 	char	*envList[] = ENV_LIST;
+	char	buffer[ENV_MAX];
+	
+	data->envp = envp;
 	
 	for (int u = 0; u != ENV_LIST_SIZE; u++)
 	{
@@ -153,14 +156,16 @@ void parse_envp(char **envp, t_script_settings *data)
 			if (!ft_strncmp(envp[i], envList[u], ft_strlen(envList[u])))
 			{
 				for (int y = ft_strlen(envList[u]); envp[i][y - 1]; y++)
-					envp[i][y - ft_strlen(envList[u])] = envp[i][y];
+					ft_strlcpy(buffer, envp[i] + ft_strlen(envList[u]), sizeof(buffer));
 				switch (u)
 				{
 					case 0:
-						data->shellEnv = envp[i];
+						ft_strlcpy(data->shellEnv, buffer, ENV_MAX);
+						ft_bzero(&buffer, ENV_MAX);
 						break;
 					case 1:
-						data->termEnv = envp[i];
+						ft_strlcpy(data->termEnv, buffer, ENV_MAX);
+						ft_bzero(&buffer, ENV_MAX);
 						break;
 				}
 				break;

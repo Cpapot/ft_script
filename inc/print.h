@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:06:36 by coren             #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:11 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 12:46:58 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 # define START_FILE_MESSAGE {"Ft_script started on ", " [TERM=\"", "\" TTY=\"" \
 	, "\" COLUMNS=\"", "\" LINES=\"", "\"]\n"}
 
-# define END_FILE_MESSAGE {"\nScript done on ", " [COMMAND_EXIT_CODE=\"", "\"]\n" }
+# define END_FILE_MESSAGE {"\nFt_script done on ", " [COMMAND_EXIT_CODE=\"", "\"]\n" }
 
 
 #endif

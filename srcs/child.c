@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 13:38:17 by coren             #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:14 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:12:31 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,10 @@ int	child_process(t_script_data *data)
     dup2(slave_fd, STDOUT_FILENO);
     dup2(slave_fd, STDERR_FILENO);
 	close(slave_fd);
+	
 
-	char *args[] = {"/bin/sh", NULL};
-    execve("/bin/sh", args, NULL); //check error
+	char *args[] = {data->shellEnv, NULL};
+    execve(data->shellEnv, args, data->envp); //check error
 
 	return SUCCES;
 }

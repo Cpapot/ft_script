@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:06:26 by coco              #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:17 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:12:50 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ int	script_test_exec(t_script_data	*data)
 	return SUCCES;
 }
 
-void parse_envp(char **envp, t_script_settings *data);
+void parse_envp(char **envp, t_script_data *data);
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -84,7 +84,7 @@ int	main(int argc, char **argv, char **envp)
 		return FAILED;
 	if (data.settings.isClosing)
 		return SUCCES;
-	parse_envp(envp, &(data.settings));
+	parse_envp(envp, &data);
 
 	print_start_info(data);
 

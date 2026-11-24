@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/27 15:00:10 by coren             #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:22 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:13:05 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void	write_start_info(t_script_data *data)
 	ft_strlcat(buffer, message[0], BUFFER_SIZE);
 	get_strtime(buffer, data);
 	ft_strlcat(buffer, message[1], BUFFER_SIZE);
-	ft_strlcat(buffer, data->settings.termEnv, BUFFER_SIZE);
+	ft_strlcat(buffer, data->termEnv, BUFFER_SIZE);
 	ft_strlcat(buffer, message[2], BUFFER_SIZE);
 	ft_strlcat(buffer, data->slavePath, BUFFER_SIZE);
 	ft_strlcat(buffer, message[3], BUFFER_SIZE);

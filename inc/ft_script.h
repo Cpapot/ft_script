@@ -6,7 +6,7 @@
 /*   By: cpapot <cpapot@student.42lyon.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/05 17:07:22 by coco              #+#    #+#             */
-/*   Updated: 2026/11/24 12:44:05 by cpapot           ###   ########.fr       */
+/*   Updated: 2026/11/24 13:12:08 by cpapot           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ extern int parsing_test_fd;
 # define PATH_MAX				256
 # define TERMIOS_MAX			128
 # define TIMEVAL_MAX			128
+# define ENV_MAX				248
 
 # define ERROR_PRINT	"ft_script: "
 # define HELP_INFO		"Try 'ft_script --help' for more information.\n"
@@ -64,14 +65,12 @@ typedef struct s_script_settings
 	bool	isQuiet;
 	char	*timing;
 	bool	isClosing;
-
-	char	*shellEnv;
-	char	*termEnv;
 }	t_script_settings;
 
 typedef struct s_script_data
 {
 	t_script_settings			settings;
+	char						**envp;
 	
 	alignas(16) unsigned char	lastTimeStruct[TIMEVAL_MAX];
 	alignas(16) unsigned char	currentTimeStruct[TIMEVAL_MAX];
@@ -87,6 +86,8 @@ typedef struct s_script_data
 
 	char						columns[5];
 	char						lines[5];
+	char						shellEnv[ENV_MAX];
+	char						termEnv[ENV_MAX];
 
 	int							childExitCode;
 	
